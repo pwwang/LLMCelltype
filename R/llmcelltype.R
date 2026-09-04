@@ -48,7 +48,7 @@ llmcelltype <- function(
 ) {
   provider <- match.arg(provider)
 
-  if (class(input) == 'list') {
+  if (is.list(input) && !is.data.frame(input)) {
     input <- sapply(input, paste, collapse = ',')
   } else {
     input <- input[input$avg_log2FC > 0, , drop = FALSE]
