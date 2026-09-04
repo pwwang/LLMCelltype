@@ -1,18 +1,19 @@
-Package: GPTCelltype
+Package: LLMCellType
 Type: Package
-Title: Reference-free and cost-effective automated cell type annotation
-        with GPT-4 in single-cell RNA-seq analysis
+Title: Provider-agnostic automated cell type annotation with large language models in single-cell RNA-seq analysis - A fork of GPTCellType.
 Version: 1.0.1
-Date: 2023-08-28
-Author: Wenpin Hou, Zhicheng Ji
-Maintainer: Wenpin Hou <wh2526@cumc.columbia.edu>
-Description: An R package that integrates OpenAI API for reference-free and cost-effective automated cell type annotation with GPT-4 in single-cell RNA-seq analysis
+Author: Wenpin Hou, Zhicheng Ji, pwwang
+Maintainer: pwwang <pwwang@pwwang.com>
+Description: Provider-agnostic automated cell type annotation with large
+        language models (OpenAI, Anthropic, Google Gemini, or a local Ollama
+        server, via the ellmer package) in single-cell RNA-seq analysis.
+        Reference-free and cost-effective: no reference atlas is needed and
+        only the top marker genes per cluster are sent to the model.
 Encoding: UTF-8
-License: MIT
-RoxygenNote: 7.2.3
+License: MIT + file LICENSE
+RoxygenNote: 7.3.3
 VignetteBuilder: knitr
-Imports: openai
-Suggests: knitr, rmarkdown, markdown
-Depends: R (>= 3.5.0)
+Imports: ellmer
+Suggests: knitr, rmarkdown, markdown, Seurat
+Depends: R (>= 4.1.0)
 NeedsCompilation: no
-Packaged: 2023-09-04 20:52:51 UTC; wenpinhou
