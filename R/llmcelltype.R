@@ -79,7 +79,11 @@ llmcelltype <- function(
   }
   chat <- .llm_chat(provider, model, base_url, api_key)
 
-  cutnum <- ceiling(length(input) / 30)
+  # one call per ~200 clusters: input per cluster is a few tokens, and output
+  # per chunk is a few hundred short lines, well within today's output caps.
+  # The retry loop below re-sends a whole chunk, so a chunk must stay small
+  # enough that a bad answer is cheap to retry.
+  cutnum <- ceiling(length(input) / 200)
   if (cutnum > 1) {
     cid <- as.numeric(cut(1:length(input), cutnum))
   } else {
@@ -90,13 +94,30 @@ llmcelltype <- function(
     seq_len(cutnum),
     function(i) {
       id <- which(cid == i)
-      flag <- 0
-      while (flag == 0) {
-        k <- chat$chat(.llm_prompt_chunk(tissuename, input[id]))
-        res <- strsplit(k, "\n")[[1]]
-        if (length(res) == length(id)) {
-          flag <- 1
+      n <- length(id)
+      res <- character()
+      # a model that gets the line count wrong once is likely to repeat it;
+      # cap attempts and tell it what went wrong instead of looping forever
+      for (attempt in seq_len(3)) {
+        hint <- if (attempt > 1) {
+          paste0(
+            'Your previous answer had ', length(res), ' lines but ', n,
+            ' markers were given. Answer again with exactly one cell type',
+            ' per line and nothing else.'
+          )
+        } else {
+          NULL
         }
+        k <- chat$chat(.llm_prompt_chunk(tissuename, input[id], hint))
+        res <- strsplit(k, '\n')[[1]]
+        res <- res[nzchar(trimws(res))]
+        if (length(res) == n) break
+      }
+      if (length(res) != n) {
+        stop(
+          'Could not parse the LLM answer for chunk ', i,
+          ': expected ', n, ' cell types, got ', length(res)
+        )
       }
       names(res) <- names(input)[id]
       res
@@ -193,12 +214,17 @@ gptcelltype <- function(
   )
 }
 
-# prompt sent to the model for one chunk of clusters
-.llm_prompt_chunk <- function(tissuename, genes) {
-  paste0(
+# prompt sent to the model for one chunk of clusters; hint carries the
+# format feedback shown to the model on a retry
+.llm_prompt_chunk <- function(tissuename, genes, hint = NULL) {
+  prompt <- paste0(
     'Identify cell types of ',
     tissuename,
     ' cells using the following markers separately for each\n row. Only provide the cell type name. Do not show numbers before the name.\n Some can be a mixture of multiple cell types.\n',
     paste(genes, collapse = '\n')
   )
+  if (!is.null(hint)) {
+    prompt <- paste0(prompt, '\n', hint)
+  }
+  prompt
 }
