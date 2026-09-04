@@ -1,7 +1,7 @@
 Package: LLMCellType
 Type: Package
 Title: Provider-agnostic automated cell type annotation with large language models in single-cell RNA-seq analysis - A fork of GPTCellType.
-Version: 1.0.1
+Version: 0.0.2
 Author: Wenpin Hou, Zhicheng Ji, pwwang
 Maintainer: pwwang <pwwang@pwwang.com>
 Description: Provider-agnostic automated cell type annotation with large
