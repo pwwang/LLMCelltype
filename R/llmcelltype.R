@@ -101,9 +101,9 @@ llmcelltype <- function(
       for (attempt in seq_len(3)) {
         hint <- if (attempt > 1) {
           paste0(
-            'Your previous answer had ', length(res), ' lines but ', n,
-            ' markers were given. Answer again with exactly one cell type',
-            ' per line and nothing else.'
+            'Your previous answer had ', length(res), ' lines, but exactly ',
+            n, ' were required (one per row). Reply again with ', n,
+            ' plain cell type names, one per line, nothing else.'
           )
         } else {
           NULL
@@ -214,17 +214,22 @@ gptcelltype <- function(
   )
 }
 
-# prompt sent to the model for one chunk of clusters; hint carries the
-# format feedback shown to the model on a retry
+# prompt sent to the model for one chunk of clusters; states an explicit
+# output contract (exactly N lines, in order) because without it models add
+# preambles or wrap lines, which fails the parse check and forces retries;
+# hint carries the format feedback shown to the model on a retry
 .llm_prompt_chunk <- function(tissuename, genes, hint = NULL) {
   prompt <- paste0(
-    'Identify cell types of ',
-    tissuename,
-    ' cells using the following markers separately for each\n row. Only provide the cell type name. Do not show numbers before the name.\n Some can be a mixture of multiple cell types.\n',
-    paste(genes, collapse = '\n')
+    'Identify cell types of ', tissuename,
+    ' cells using the following markers, one row per cell type:\n',
+    paste(genes, collapse = '\n'),
+    '\nReply with exactly ', length(genes), ' lines, one line per row above',
+    ' and in the same order. Mixtures of cell types are allowed. Plain names',
+    ' only - no numbering, no bullets, no preamble, no explanations, no',
+    ' blank lines, no code fences.'
   )
   if (!is.null(hint)) {
-    prompt <- paste0(prompt, '\n', hint)
+    prompt <- paste0(prompt, '\n\n', hint)
   }
   prompt
 }
