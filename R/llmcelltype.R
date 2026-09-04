@@ -30,6 +30,9 @@
 #'   environment variable.
 #' @param topgenenumber Number of top differential genes to be used if input is
 #'   Seurat differential genes.
+#' @param return_prompt Logical, return the prompt instead of the cell type annotations.
+#'   This is useful for debugging or when you want to see the prompt sent to the LLM.
+#'   When the API key is needed but not available, the prompt is always returned regardless of this argument.
 #' @export
 #' @return A named vector of cell types when an API key is available, or the
 #'   prompt itself when no API key is set.
@@ -44,7 +47,8 @@ llmcelltype <- function(
   model = NULL,
   base_url = NULL,
   api_key = NULL,
-  topgenenumber = 10
+  topgenenumber = 10,
+  return_prompt = FALSE
 ) {
   provider <- match.arg(provider)
 
@@ -57,11 +61,11 @@ llmcelltype <- function(
     })
   }
 
-  if (.llm_needs_key(provider) && !.llm_has_key(provider, api_key)) {
+  if ((.llm_needs_key(provider) && !.llm_has_key(provider, api_key)) || return_prompt) {
     print(paste0(
       "Note: ",
       .llm_provider_label(provider),
-      " API key not found: returning the prompt itself."
+      " API key not found, or return_prompt is TRUE: returning the prompt itself."
     ))
     return(.llm_prompt_no_key(tissuename, input))
   }
