@@ -56,6 +56,7 @@ llmcelltype <- function(
     input <- sapply(input, paste, collapse = ',')
   } else {
     input <- input[input$avg_log2FC > 0, , drop = FALSE]
+    input <- input[order(input$cluster, -input$avg_log2FC), , drop = FALSE]
     input <- tapply(input$gene, list(input$cluster), function(i) {
       paste0(i[1:topgenenumber], collapse = ',')
     })
